@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Prices — FarmConnect Ghana</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🌾</span>
+        FarmConnect Ghana
+      </a>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/prices.html" class="active">Prices</a>
+        <a href="/buyer.html">Place Order</a>
+        <a href="/ussd-simulator.html">USSD Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Real-Time Market Prices</h1>
+      <p>Compare FarmConnect direct-sale prices vs. typical roadside middleman offers. Updated every 5 minutes across Accra, Kumasi, Tamale, Cape Coast, and Takoradi.</p>
+    </section>
+
+    <div class="card">
+      <h2>📊 Price Summary by Crop</h2>
+      <div class="price-grid" id="price-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📍 Prices by Market</h2>
+      <div id="market-prices">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="alert alert-success">
+      <strong>Tip for farmers:</strong> Roadside middlemen typically pay 30–35% below market rate.
+      Dial <code>*920*88#</code> → Today's Prices to see what you should earn.
+      SMS <code>PRICES</code> to your FarmConnect number for a quick update.
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>FarmConnect Ghana · Prices refresh automatically</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    async function loadMarketPrices() {
+      const el = document.getElementById('market-prices');
+      try {
+        const prices = await fetch('/api/prices').then(r => r.json());
+        const byMarket = {};
+        prices.forEach(p => {
+          if (!byMarket[p.market]) byMarket[p.market] = [];
+          byMarket[p.market].push(p);
+        });
+        el.innerHTML = Object.entries(byMarket).map(([market, items]) => `
+          <h3 style="font-size:0.9rem;margin:1rem 0 0.5rem;color:var(--green-dark)">${market}</h3>
+          <div class="price-grid">
+            ${items.map(p => `
+              <div class="price-item">
+                <div>
+                  <div class="crop-name">${p.name}</div>
+                  <div class="crop-unit">per ${p.unit}</div>
+                </div>
+                <div class="price-value">GHS ${p.price_ghs.toFixed(0)}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+      } catch (e) {
+        el.innerHTML = '<p>Unable to load market prices.</p>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadMarketPrices);
+  </script>
+</body>
+</html>

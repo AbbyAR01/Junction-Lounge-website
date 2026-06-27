@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USSD Simulator — FarmConnect Ghana</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🌾</span>
+        FarmConnect Ghana
+      </a>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/prices.html">Prices</a>
+        <a href="/buyer.html">Place Order</a>
+        <a href="/ussd-simulator.html" class="active">USSD Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" style="text-align:center">
+      <h1>USSD Simulator</h1>
+      <p>Experience FarmConnect as a farmer would on a feature phone. Dial <strong>*920*88#</strong></p>
+    </section>
+
+    <div class="ussd-phone">
+      <div style="text-align:center;color:#666;font-size:0.75rem;margin-bottom:0.5rem">
+        *920*88# — FarmConnect Ghana
+      </div>
+      <div class="ussd-screen" id="ussd-screen">Dialing *920*88#...</div>
+      <div class="ussd-input-row">
+        <input type="text" id="ussd-input" placeholder="Enter choice..." inputmode="numeric">
+        <button id="ussd-send">Send</button>
+      </div>
+      <div class="ussd-hint">
+        Try: 1 (prices) · 2 (orders) · 3 (commit harvest) · 5 (transport)
+      </div>
+    </div>
+
+    <div class="card" style="max-width:400px;margin:0 auto 2rem">
+      <h2>📱 Test Farmer Accounts</h2>
+      <p style="font-size:0.85rem;margin-bottom:0.75rem">Select a seeded farmer phone number:</p>
+      <div class="form-group">
+        <select id="farmer-phone">
+          <option value="233241111001">Kwame Asante (Eastern) — 0241111001</option>
+          <option value="233241111002">Ama Osei (Ashanti) — 0241111002</option>
+          <option value="233241111003">Kofi Mensah (Central) — 0241111003</option>
+          <option value="233241111004">Yaa Boateng (Volta) — 0241111004</option>
+        </select>
+      </div>
+      <button class="btn btn-outline btn-block" id="ussd-reset">Reset Session</button>
+    </div>
+
+    <div class="card">
+      <h2>💬 SMS Simulator</h2>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem">
+        Test inbound SMS commands: PRICES, CONFIRM, HELP
+      </p>
+      <div class="ussd-input-row" style="max-width:400px">
+        <input type="text" id="sms-input" placeholder="SMS message...">
+        <button id="sms-send" class="btn btn-primary btn-sm">Send SMS</button>
+      </div>
+      <div id="sms-log" style="margin-top:1rem">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>FarmConnect Ghana · USSD works on all GSM feature phones</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let sessionId = 'sim-' + Date.now();
+    let ussdPath = '';
+
+    const screen = document.getElementById('ussd-screen');
+    const input = document.getElementById('ussd-input');
+    const phoneSelect = document.getElementById('farmer-phone');
+
+    async function sendUssd(text) {
+      const phone = phoneSelect.value;
+      if (text) ussdPath += (ussdPath ? '*' : '') + text;
+
+      const res = await fetch('/ussd/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, phoneNumber: phone, text: ussdPath }),
+      });
+      const data = await res.json();
+      const isEnd = !data.continueSession;
+      screen.textContent = data.response.replace(/^(CON|END)\s*/, '');
+      input.value = '';
+
+      if (isEnd) {
+        ussdPath = '';
+        sessionId = 'sim-' + Date.now();
+      }
+    }
+
+    document.getElementById('ussd-send').addEventListener('click', () => {
+      if (input.value.trim()) sendUssd(input.value.trim());
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) sendUssd(input.value.trim());
+    });
+
+    document.getElementById('ussd-reset').addEventListener('click', () => {
+      ussdPath = '';
+      sessionId = 'sim-' + Date.now();
+      screen.textContent = '';
+      sendUssd('');
+    });
+
+    document.getElementById('sms-send').addEventListener('click', async () => {
+      const msg = document.getElementById('sms-input').value.trim();
+      if (!msg) return;
+      await fetch('/sms/inbound', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: phoneSelect.value, text: msg }),
+      });
+      document.getElementById('sms-input').value = '';
+      loadSmsLog('sms-log');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => sendUssd(''));
+  </script>
+</body>
+</html>

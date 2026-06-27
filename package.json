@@ -1,0 +1,20 @@
+{
+  "name": "farmconnect-ghana",
+  "version": "1.0.0",
+  "description": "USSD + lightweight app connecting Ghanaian farmers to urban buyers",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/db/seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+  "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "uuid": "^11.0.5"
+  }
+}
