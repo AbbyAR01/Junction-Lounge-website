@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FarmConnect Ghana - Connect farmers to urban buyers via USSD">
+  <title>FarmConnect Ghana</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🌾</span>
+        FarmConnect Ghana
+      </a>
+      <nav class="nav">
+        <a href="/" class="active">Home</a>
+        <a href="/prices.html">Prices</a>
+        <a href="/buyer.html">Place Order</a>
+        <a href="/ussd-simulator.html">USSD Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>From Farm to City — No Spoilage, Fair Prices</h1>
+      <p>
+        Ghana loses 30–40% of produce to spoilage before it reaches market.
+        FarmConnect links smallholder farmers directly to urban aggregators, restaurants,
+        and school feeding programs — via USSD on any feature phone.
+      </p>
+      <div class="stat-row" id="stats">
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Loading</div></div>
+      </div>
+    </section>
+
+    <div class="alert alert-info">
+      <strong>Farmers:</strong> Dial <code>*920*88#</code> on any phone — no smartphone needed.
+      Check prices, accept buyer orders, commit harvests, and book shared transport.
+    </div>
+
+    <div class="card">
+      <h2>📊 Live Market Prices</h2>
+      <div class="price-grid" id="price-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+      <p style="margin-top:0.75rem;font-size:0.85rem">
+        <a href="/prices.html">View all prices →</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>📋 Open Buyer Orders</h2>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem">
+        Order-ahead system — farmers time harvests to match real demand.
+      </p>
+      <div id="orders-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🌱 Available Harvest Commitments</h2>
+      <div id="commitments-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🚛 Shared Transport</h2>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem">
+        Pool shipments to cut last-mile costs. SMS coordinates pickup and delivery.
+      </p>
+      <div id="transport-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💬 SMS Logistics Log</h2>
+      <div id="sms-log">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>FarmConnect Ghana · USSD *920*88# · SMS: PRICES, CONFIRM, HELP</p>
+    <p>Reducing post-harvest loss · Connecting farmers to fair markets</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

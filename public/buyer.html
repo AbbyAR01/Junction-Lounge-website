@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Place Order — FarmConnect Ghana</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🌾</span>
+        FarmConnect Ghana
+      </a>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/prices.html">Prices</a>
+        <a href="/buyer.html" class="active">Place Order</a>
+        <a href="/ussd-simulator.html">USSD Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Order Ahead — Time the Harvest</h1>
+      <p>
+        Aggregators, restaurants, and school feeding programs can post demand orders.
+        Farmers receive SMS alerts and accept via USSD <code>*920*88#</code>.
+      </p>
+    </section>
+
+    <div id="alert-box" class="hidden"></div>
+
+    <div class="card">
+      <h2>🛒 New Buyer Order</h2>
+      <form id="order-form">
+        <div class="form-group">
+          <label for="buyer_id">Your Organization</label>
+          <select id="buyer_id" name="buyer_id" required>
+            <option value="">Select buyer...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="crop_id">Crop</label>
+          <select id="crop_id" name="crop_id" required>
+            <option value="">Select crop...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quantity">Quantity</label>
+          <input type="number" id="quantity" name="quantity" min="1" step="1" required placeholder="e.g. 50">
+        </div>
+        <div class="form-group">
+          <label for="max_price_ghs">Max Price (GHS per unit)</label>
+          <input type="number" id="max_price_ghs" name="max_price_ghs" min="1" step="0.5" required placeholder="e.g. 45">
+        </div>
+        <div class="form-group">
+          <label for="needed_by">Needed By</label>
+          <input type="date" id="needed_by" name="needed_by" required>
+        </div>
+        <div class="form-group">
+          <label for="delivery_location">Delivery Location</label>
+          <input type="text" id="delivery_location" name="delivery_location" required placeholder="e.g. Accra, Osu">
+        </div>
+        <div class="form-group">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Quality requirements, packaging, etc."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Post Order & Notify Farmers</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>📋 Your Recent Orders</h2>
+      <div id="orders-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>FarmConnect Ghana · Orders broadcast to farmers via SMS + USSD</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    async function initBuyerForm() {
+      const buyers = await fetch('/api/users?role=aggregator').then(r => r.json())
+        .then(a => fetch('/api/users?role=restaurant').then(r => r.json()).then(b => [...a, ...b]))
+        .then(() => fetch('/api/users').then(r => r.json()))
+        .then(users => users.filter(u => ['aggregator', 'restaurant', 'school'].includes(u.role)));
+
+      const crops = await fetch('/api/crops').then(r => r.json());
+
+      const buyerSelect = document.getElementById('buyer_id');
+      buyers.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = `${b.name} (${b.role})`;
+        buyerSelect.appendChild(opt);
+      });
+
+      const cropSelect = document.getElementById('crop_id');
+      crops.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.unit})`;
+        cropSelect.appendChild(opt);
+      });
+
+      const dateInput = document.getElementById('needed_by');
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      dateInput.value = nextWeek.toISOString().split('T')[0];
+      dateInput.min = new Date().toISOString().split('T')[0];
+    }
+
+    document.getElementById('order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alert-box');
+      try {
+        const order = await submitOrder(e.target);
+        alertBox.className = 'alert alert-success';
+        alertBox.textContent = `Order posted! ${order.quantity} units needed by ${order.needed_by}. Farmers notified via SMS.`;
+        alertBox.classList.remove('hidden');
+        e.target.reset();
+        initBuyerForm();
+        loadOrders('orders-list');
+      } catch (err) {
+        alertBox.className = 'alert alert-info';
+        alertBox.textContent = 'Failed to post order. Please check all fields.';
+        alertBox.classList.remove('hidden');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', initBuyerForm);
+  </script>
+</body>
+</html>
